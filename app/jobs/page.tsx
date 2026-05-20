@@ -18,6 +18,7 @@ export default function JobsPage() {
     const { data, error } = await supabase
       .from("jobs")
       .select("*")
+      .gte("expires_at", new Date().toISOString())
       .order("id", { ascending: false });
 
     if (error) {
