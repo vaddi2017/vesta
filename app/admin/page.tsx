@@ -26,7 +26,9 @@ export default function AdminPage() {
       return;
     }
 
-    if (data) setCompanies(data);
+    if (data) {
+      setCompanies(data);
+    }
   }
 
   async function addCompany() {
@@ -46,14 +48,18 @@ export default function AdminPage() {
       ]);
 
       if (error) {
+        console.error(error);
         alert(error.message);
         return;
       }
 
       alert("Company added successfully");
+
       setName("");
       setUrl("");
+
       fetchCompanies();
+
     } catch (err) {
       console.error(err);
       alert("Something went wrong");
@@ -63,11 +69,19 @@ export default function AdminPage() {
   }
 
   async function clearJobs() {
-    if (!confirm("Are you sure you want to delete all jobs?")) return;
+    const confirmed = confirm(
+      "Are you sure you want to delete all jobs?"
+    );
 
-    const { error } = await supabase.from("jobs").delete().neq("id", 0);
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("jobs")
+      .delete()
+      .neq("id", 0);
 
     if (error) {
+      console.error(error);
       alert("Failed to clear jobs");
       return;
     }
@@ -79,32 +93,23 @@ export default function AdminPage() {
     try {
       alert("Scraper started. Please wait.");
 
-      const response = await fetch("http://127.0.0.1:8000/scrape-jobs");
+      const response = await fetch(
+        "https://vesta-production-f851.up.railway.app/scrape-jobs"
+      );
+
       const result = await response.json();
 
-      alert(`Scraper finished. Jobs found: ${result.jobs_found}`);
+      alert(
+        `Scraper finished. Jobs found: ${result.jobs_found}`
+      );
+
     } catch (error) {
       console.error(error);
-      alert("Scraper failed. Make sure backend is running.");
+
+      alert(
+        "Scraper failed. Railway backend may be offline."
+      );
     }
-  }
-
-  async function deleteCompany(id: number) {
-    if (!confirm("Delete this company?")) return;
-
-    const { error } = await supabase
-      .from("companies")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      console.error(error);
-      alert("Failed to delete company");
-      return;
-    }
-
-    alert("Company deleted");
-    fetchCompanies();
   }
 
   useEffect(() => {
@@ -114,44 +119,52 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-4xl font-bold">Vesta Admin Dashboard</h1>
+
+        <h1 className="text-4xl font-bold">
+          Vesta Admin Dashboard
+        </h1>
+
         <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-  <h2 className="text-2xl font-semibold">
-    Vesta System Status
-  </h2>
 
-  <div className="mt-4 space-y-2 text-slate-300">
-    <p>
-      Backend Status:
-      <span className="ml-2 text-green-400 font-semibold">
-        Running
-      </span>
-    </p>
+          <h2 className="text-2xl font-semibold">
+            Vesta System Status
+          </h2>
 
-    <p>
-      Scheduler:
-      <span className="ml-2 text-green-400 font-semibold">
-        Active Daily at 10:00 AM CST
-      </span>
-    </p>
+          <div className="mt-4 space-y-2 text-slate-300">
 
-    <p>
-      Frontend:
-      <span className="ml-2 text-green-400 font-semibold">
-        Online
-      </span>
-    </p>
+            <p>
+              Backend Status:
+              <span className="ml-2 text-green-400 font-semibold">
+                Running
+              </span>
+            </p>
 
-    <p>
-      Database:
-      <span className="ml-2 text-green-400 font-semibold">
-        Connected
-      </span>
-    </p>
-  </div>
-</div>
+            <p>
+              Scheduler:
+              <span className="ml-2 text-green-400 font-semibold">
+                Active Daily at 10:00 AM CST
+              </span>
+            </p>
+
+            <p>
+              Frontend:
+              <span className="ml-2 text-green-400 font-semibold">
+                Online
+              </span>
+            </p>
+
+            <p>
+              Database:
+              <span className="ml-2 text-green-400 font-semibold">
+                Connected
+              </span>
+            </p>
+
+          </div>
+        </div>
 
         <div className="mt-6 flex gap-4">
+
           <button
             onClick={clearJobs}
             className="rounded-xl bg-red-500 px-6 py-3 font-semibold hover:bg-red-600"
@@ -165,12 +178,17 @@ export default function AdminPage() {
           >
             Run Job Scraper Now
           </button>
+
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <h2 className="text-2xl font-semibold">Add Career Site</h2>
+
+          <h2 className="text-2xl font-semibold">
+            Add Career Site
+          </h2>
 
           <div className="mt-6 flex flex-col gap-4">
+
             <input
               type="text"
               placeholder="Company Name"
@@ -195,15 +213,22 @@ export default function AdminPage() {
             >
               {loading ? "Adding..." : "Add Company"}
             </button>
+
           </div>
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <h2 className="text-2xl font-semibold">Saved Career Sites</h2>
+
+          <h2 className="text-2xl font-semibold">
+            Saved Career Sites
+          </h2>
 
           <div className="mt-6 space-y-4">
+
             {companies.length === 0 && (
-              <p className="text-slate-400">No companies added yet.</p>
+              <p className="text-slate-400">
+                No companies added yet.
+              </p>
             )}
 
             {companies.map((company) => (
@@ -219,16 +244,12 @@ export default function AdminPage() {
                   {company.career_url}
                 </p>
 
-                <button
-                  onClick={() => deleteCompany(company.id)}
-                  className="mt-4 rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold hover:bg-red-600"
-                >
-                  Delete
-                </button>
               </div>
             ))}
+
           </div>
         </div>
+
       </div>
     </main>
   );
