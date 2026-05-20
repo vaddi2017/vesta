@@ -11,6 +11,10 @@ type Company = {
 
 type Job = {
   id: number;
+  company_name: string;
+  job_title: string;
+  location: string;
+  apply_url: string;
 };
 
 export default function AdminPage() {
@@ -21,23 +25,36 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
 
   async function fetchCompanies() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("companies")
       .select("*")
       .order("id", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
 
     if (data) setCompanies(data);
   }
 
   async function fetchJobs() {
-    const { data } = await supabase.from("jobs").select("id");
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
 
     if (data) setJobs(data);
   }
 
   async function refreshDashboard() {
-    fetchCompanies();
-    fetchJobs();
+    await fetchCompanies();
+    await fetchJobs();
   }
 
   async function addCompany() {
@@ -74,11 +91,27 @@ export default function AdminPage() {
     const { error } = await supabase.from("jobs").delete().neq("id", 0);
 
     if (error) {
+      console.error(error);
       alert("Failed to clear jobs");
       return;
     }
 
     alert("All jobs cleared");
+    refreshDashboard();
+  }
+
+  async function deleteJob(id: number) {
+    if (!confirm("Delete this job from Vesta?")) return;
+
+    const { error } = await supabase.from("jobs").delete().eq("id", id);
+
+    if (error) {
+      console.error(error);
+      alert("Failed to delete job");
+      return;
+    }
+
+    alert("Job deleted");
     refreshDashboard();
   }
 
@@ -156,7 +189,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="mt-6 flex gap-4">
+        <div className="mt-6 flex flex-wrap gap-4">
           <button
             onClick={clearJobs}
             className="rounded-xl bg-red-500 px-6 py-3 font-semibold hover:bg-red-600"
@@ -223,6 +256,48 @@ export default function AdminPage() {
                 <p className="mt-1 text-sm text-slate-400">
                   {company.career_url}
                 </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <h2 className="text-2xl font-semibold">Manage Jobs</h2>
+
+          <div className="mt-6 space-y-4">
+            {jobs.length === 0 && (
+              <p className="text-slate-400">No jobs available.</p>
+            )}
+
+            {jobs.map((job) => (
+              <div
+                key={job.id}
+                className="rounded-xl border border-slate-800 bg-slate-950 p-4"
+              >
+                <p className="text-sm text-blue-400">{job.company_name}</p>
+
+                <h3 className="mt-2 text-lg font-semibold">
+                  {job.job_title}
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-400">{job.location}</p>
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <a
+                    href={job.apply_url}
+                    target="_blank"
+                    className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold hover:bg-blue-600"
+                  >
+                    View Job
+                  </a>
+
+                  <button
+                    onClick={() => deleteJob(job.id)}
+                    className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold hover:bg-red-600"
+                  >
+                    Delete Job
+                  </button>
+                </div>
               </div>
             ))}
           </div>

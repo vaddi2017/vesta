@@ -31,20 +31,6 @@ export default function JobsPage() {
     if (data) setJobs(data);
   }
 
-  async function deleteJob(id: number) {
-    if (!confirm("Delete this job?")) return;
-
-    const { error } = await supabase.from("jobs").delete().eq("id", id);
-
-    if (error) {
-      console.error(error);
-      alert("Failed to delete job");
-      return;
-    }
-
-    fetchJobs();
-  }
-
   useEffect(() => {
     fetchJobs();
   }, []);
@@ -58,10 +44,12 @@ export default function JobsPage() {
   }, [jobs]);
 
   const filteredJobs = jobs.filter((job) => {
+    const searchText = search.toLowerCase();
+
     const matchesSearch =
-      job.job_title.toLowerCase().includes(search.toLowerCase()) ||
-      job.company_name.toLowerCase().includes(search.toLowerCase()) ||
-      job.location.toLowerCase().includes(search.toLowerCase());
+      job.job_title.toLowerCase().includes(searchText) ||
+      job.company_name.toLowerCase().includes(searchText) ||
+      job.location.toLowerCase().includes(searchText);
 
     const matchesCompany =
       companyFilter === "All" || job.company_name === companyFilter;
@@ -131,22 +119,13 @@ export default function JobsPage() {
 
               <p className="mt-2 text-slate-300">{job.location}</p>
 
-              <div className="mt-4 flex gap-3">
-                <a
-                  href={job.apply_url}
-                  target="_blank"
-                  className="inline-block rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600"
-                >
-                  Apply
-                </a>
-
-                <button
-                  onClick={() => deleteJob(job.id)}
-                  className="rounded-xl bg-red-500 px-5 py-2 font-semibold hover:bg-red-600"
-                >
-                  Delete Job
-                </button>
-              </div>
+              <a
+                href={job.apply_url}
+                target="_blank"
+                className="mt-4 inline-block rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600"
+              >
+                Apply
+              </a>
             </div>
           ))}
 
