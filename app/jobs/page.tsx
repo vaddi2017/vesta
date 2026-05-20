@@ -31,6 +31,20 @@ export default function JobsPage() {
     if (data) setJobs(data);
   }
 
+  async function deleteJob(id: number) {
+    if (!confirm("Delete this job?")) return;
+
+    const { error } = await supabase.from("jobs").delete().eq("id", id);
+
+    if (error) {
+      console.error(error);
+      alert("Failed to delete job");
+      return;
+    }
+
+    fetchJobs();
+  }
+
   useEffect(() => {
     fetchJobs();
   }, []);
@@ -117,13 +131,22 @@ export default function JobsPage() {
 
               <p className="mt-2 text-slate-300">{job.location}</p>
 
-              <a
-                href={job.apply_url}
-                target="_blank"
-                className="mt-4 inline-block rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600"
-              >
-                Apply
-              </a>
+              <div className="mt-4 flex gap-3">
+                <a
+                  href={job.apply_url}
+                  target="_blank"
+                  className="inline-block rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600"
+                >
+                  Apply
+                </a>
+
+                <button
+                  onClick={() => deleteJob(job.id)}
+                  className="rounded-xl bg-red-500 px-5 py-2 font-semibold hover:bg-red-600"
+                >
+                  Delete Job
+                </button>
+              </div>
             </div>
           ))}
 
