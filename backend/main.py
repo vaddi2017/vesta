@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from scraper.google_scraper import scrape_jobs
 from scraper.lever_scraper import scrape_lever_jobs
+from scraper.greenhouse_scraper import scrape_greenhouse_jobs
 from services.company_service import get_companies
 from services.supabase_client import supabase
 from services.ats_detector import detect_ats
@@ -27,11 +28,18 @@ def run_scraper_job():
         ats_type = detect_ats(company["career_url"])
         company_jobs = []
 
-        if ats_type == "lever":
+        if ats_type == "greenhouse":
+            company_jobs = scrape_greenhouse_jobs(
+                company["career_url"],
+                company["company_name"]
+            )
+
+        elif ats_type == "lever":
             company_jobs = scrape_lever_jobs(
                 company["career_url"],
                 company["company_name"]
             )
+
         else:
             company_jobs = scrape_jobs(
                 company["career_url"],
