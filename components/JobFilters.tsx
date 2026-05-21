@@ -5,12 +5,18 @@ type Props = {
   setSearch: (value: string) => void;
 };
 
-export default function JobFilters({
-  search,
-  setSearch,
-}: Props) {
+const quickFilters = [
+  "AI",
+  "Machine Learning",
+  "React",
+  "Java",
+  "Cloud",
+  "Remote",
+];
+
+export default function JobFilters({ search, setSearch }: Props) {
   return (
-    <div className="mb-8 rounded-3xl border border-slate-800 bg-slate-900 p-6">
+    <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
       <h2 className="text-2xl font-semibold text-white">
         Search Jobs
       </h2>
@@ -30,6 +36,18 @@ export default function JobFilters({
         >
           Clear
         </button>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        {quickFilters.map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setSearch(filter)}
+            className="rounded-full border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-300 hover:border-blue-500 hover:text-white"
+          >
+            {filter}
+          </button>
+        ))}
       </div>
     </div>
   );
