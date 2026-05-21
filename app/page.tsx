@@ -27,6 +27,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/jobs"
+                prefetch={false}
                 className="rounded-xl bg-blue-500 px-6 py-3 font-semibold hover:bg-blue-600"
               >
                 Browse Jobs
@@ -34,6 +35,7 @@ export default function HomePage() {
 
               <Link
                 href="/saved"
+                prefetch={false}
                 className="rounded-xl border border-slate-700 px-6 py-3 font-semibold hover:bg-slate-800"
               >
                 View Saved Jobs
