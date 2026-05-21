@@ -44,7 +44,6 @@ export default function HomePage() {
           <section className="mt-8 grid gap-6 md:grid-cols-3">
             <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
               <h2 className="text-2xl font-semibold">Daily Fresh Jobs</h2>
-
               <p className="mt-3 text-slate-400">
                 Automatically collects fresh roles from company career sites.
               </p>
@@ -52,15 +51,13 @@ export default function HomePage() {
 
             <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
               <h2 className="text-2xl font-semibold">Smart Filters</h2>
-
               <p className="mt-3 text-slate-400">
-                Search for AI, ML, React, Java, Cloud, Remote, and more.
+                Search by AI, ML, React, Java, Cloud, Remote, and more.
               </p>
             </div>
 
             <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
               <h2 className="text-2xl font-semibold">Saved Jobs</h2>
-
               <p className="mt-3 text-slate-400">
                 Save interesting jobs and return to them anytime.
               </p>
