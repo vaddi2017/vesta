@@ -1,88 +1,75 @@
-"use client";
+import Link from "next/link";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-
-type Job = {
-  id: number;
-  company_name: string;
-  job_title: string;
-  location: string;
-  apply_url: string;
-};
-
-export default function JobsPage() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-
-  async function fetchJobs() {
-    const { data, error } = await supabase
-      .from("jobs")
-      .select("*")
-      .order("id", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    if (data) {
-      setJobs(data);
-    }
-  }
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
+export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <div className="mx-auto max-w-6xl">
+    <>
+      <Navbar />
 
-        <h1 className="text-4xl font-bold">
-          Today&apos;s Fresh Jobs
-        </h1>
-
-        <p className="mt-3 text-slate-300">
-          Jobs collected by Vesta AI Agent
-        </p>
-
-        <div className="mt-8 grid gap-4">
-
-          {jobs.map((job) => (
-            <div
-              key={job.id}
-              className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
-            >
-              <p className="text-sm text-blue-400">
-                {job.company_name}
-              </p>
-
-              <h2 className="mt-2 text-2xl font-semibold">
-                {job.job_title}
-              </h2>
-
-              <p className="mt-2 text-slate-300">
-                {job.location}
-              </p>
-
-              <a
-                href={job.apply_url}
-                target="_blank"
-                className="mt-4 inline-block rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600"
-              >
-                Apply
-              </a>
-            </div>
-          ))}
-
-          {jobs.length === 0 && (
-            <p className="text-slate-400">
-              No jobs found.
+      <main className="min-h-screen bg-slate-950 px-6 py-16 text-white">
+        <div className="mx-auto max-w-7xl">
+          <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-10 shadow-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-400">
+              Vesta AI
             </p>
-          )}
 
+            <h1 className="mt-6 max-w-4xl text-5xl font-bold leading-tight md:text-7xl">
+              AI Powered Daily Job Discovery Platform
+            </h1>
+
+            <p className="mt-6 max-w-3xl text-lg text-slate-300">
+              Vesta automatically scans company career portals and brings fresh
+              AI, ML, Full Stack, Cloud, and Software Engineering jobs into one
+              clean daily feed.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/jobs"
+                className="rounded-xl bg-blue-500 px-6 py-3 font-semibold hover:bg-blue-600"
+              >
+                Browse Jobs
+              </Link>
+
+              <Link
+                href="/saved"
+                className="rounded-xl border border-slate-700 px-6 py-3 font-semibold hover:bg-slate-800"
+              >
+                View Saved Jobs
+              </Link>
+            </div>
+          </section>
+
+          <section className="mt-8 grid gap-6 md:grid-cols-3">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
+              <h2 className="text-2xl font-semibold">Daily Fresh Jobs</h2>
+
+              <p className="mt-3 text-slate-400">
+                Automatically collects fresh roles from company career sites.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
+              <h2 className="text-2xl font-semibold">Smart Filters</h2>
+
+              <p className="mt-3 text-slate-400">
+                Search for AI, ML, React, Java, Cloud, Remote, and more.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
+              <h2 className="text-2xl font-semibold">Saved Jobs</h2>
+
+              <p className="mt-3 text-slate-400">
+                Save interesting jobs and return to them anytime.
+              </p>
+            </div>
+          </section>
         </div>
-      </div>
-    </main>
+      </main>
+
+      <Footer />
+    </>
   );
 }
