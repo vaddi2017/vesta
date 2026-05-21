@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import JobFilters from "@/components/JobFilters";
 
 type Job = {
   id: number;
@@ -14,8 +15,6 @@ type Job = {
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [search, setSearch] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("All");
-  const [locationFilter, setLocationFilter] = useState("All");
 
   async function fetchJobs() {
     const { data, error } = await supabase
@@ -28,159 +27,150 @@ export default function JobsPage() {
       return;
     }
 
-    if (data) setJobs(data);
+    if (data) {
+      setJobs(data);
+    }
   }
 
   useEffect(() => {
     fetchJobs();
   }, []);
 
-  const companies = useMemo(() => {
-    return ["All", ...Array.from(new Set(jobs.map((job) => job.company_name)))];
-  }, [jobs]);
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((job) => {
+      const text = `
+        ${job.company_name}
+        ${job.job_title}
+        ${job.location}
+      `.toLowerCase();
 
-  const locations = useMemo(() => {
-    return ["All", ...Array.from(new Set(jobs.map((job) => job.location)))];
-  }, [jobs]);
-
-  const filteredJobs = jobs.filter((job) => {
-    const q = search.toLowerCase();
-
-    return (
-      (job.job_title.toLowerCase().includes(q) ||
-        job.company_name.toLowerCase().includes(q) ||
-        job.location.toLowerCase().includes(q)) &&
-      (companyFilter === "All" || job.company_name === companyFilter) &&
-      (locationFilter === "All" || job.location === locationFilter)
-    );
-  });
-
-  function getInitials(company: string) {
-    return company
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-  }
+      return text.includes(search.toLowerCase());
+    });
+  }, [jobs, search]);
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
+
         <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-8 shadow-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-400">
-            Vesta AI Job Agent
+            Vesta AI Platform
           </p>
 
-          <h1 className="mt-4 text-4xl font-bold md:text-6xl">
-            Today&apos;s Fresh Jobs
+          <h1 className="mt-4 text-5xl font-bold">
+            Daily AI Powered Job Feed
           </h1>
 
           <p className="mt-4 max-w-2xl text-slate-300">
-            Fresh roles collected automatically from company career sites by
-            the Vesta AI agent.
+            Discover AI, ML, Full Stack, Cloud, and Software Engineering jobs
+            collected automatically from company career portals.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-              <p className="text-sm text-slate-400">Total Jobs</p>
-              <h2 className="mt-2 text-3xl font-bold">{jobs.length}</h2>
-            </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-              <p className="text-sm text-slate-400">Companies</p>
-              <h2 className="mt-2 text-3xl font-bold">
-                {companies.length - 1}
+              <p className="text-sm text-slate-400">
+                Total Jobs
+              </p>
+
+              <h2 className="mt-2 text-4xl font-bold">
+                {jobs.length}
               </h2>
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-              <p className="text-sm text-slate-400">Filtered Results</p>
-              <h2 className="mt-2 text-3xl font-bold">
+              <p className="text-sm text-slate-400">
+                Search Results
+              </p>
+
+              <h2 className="mt-2 text-4xl font-bold">
                 {filteredJobs.length}
               </h2>
             </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+              <p className="text-sm text-slate-400">
+                ATS Sources
+              </p>
+
+              <h2 className="mt-2 text-2xl font-bold text-green-400">
+                Greenhouse • Lever • Workday
+              </h2>
+            </div>
+
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 rounded-3xl border border-slate-800 bg-slate-900 p-6 md:grid-cols-3">
-          <input
-            type="text"
-            placeholder="Search title, company, location..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
+        <section className="mt-8">
+          <JobFilters
+            search={search}
+            setSearch={setSearch}
           />
-
-          <select
-            value={companyFilter}
-            onChange={(e) => setCompanyFilter(e.target.value)}
-            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
-          >
-            {companies.map((company) => (
-              <option key={company} value={company}>
-                {company}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
-            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
-          >
-            {locations.map((location) => (
-              <option key={location} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
         </section>
 
         <section className="mt-8 grid gap-5">
+
           {filteredJobs.map((job) => (
-            <article
+
+            <div
               key={job.id}
-              className="group rounded-3xl border border-slate-800 bg-slate-900 p-6 transition hover:-translate-y-1 hover:border-blue-500 hover:shadow-2xl"
+              className="rounded-3xl border border-slate-800 bg-slate-900 p-6 transition hover:border-blue-500"
             >
+
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                <div className="flex gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-500 text-lg font-bold text-white">
-                    {getInitials(job.company_name)}
-                  </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-blue-400">
-                      {job.company_name}
-                    </p>
+                <div>
 
-                    <h2 className="mt-1 text-2xl font-semibold">
-                      {job.job_title}
-                    </h2>
+                  <p className="text-sm font-semibold text-blue-400">
+                    {job.company_name}
+                  </p>
 
-                    <p className="mt-2 text-slate-300">
-                      {job.location || "Not specified"}
-                    </p>
-                  </div>
+                  <h2 className="mt-2 text-2xl font-bold">
+                    {job.job_title}
+                  </h2>
+
+                  <p className="mt-3 text-slate-300">
+                    {job.location}
+                  </p>
+
                 </div>
 
-                <a
-                  href={job.apply_url}
-                  target="_blank"
-                  className="rounded-xl bg-blue-500 px-6 py-3 text-center font-semibold hover:bg-blue-600"
-                >
-                  Apply Now
-                </a>
+                <div className="flex flex-wrap gap-3">
+
+                  <a
+                    href={job.apply_url}
+                    target="_blank"
+                    className="rounded-xl bg-blue-500 px-6 py-3 font-semibold hover:bg-blue-600"
+                  >
+                    Apply Now
+                  </a>
+
+                </div>
+
               </div>
-            </article>
+
+            </div>
+
           ))}
 
           {filteredJobs.length === 0 && (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-              No jobs found.
+
+            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-10 text-center">
+
+              <h2 className="text-3xl font-bold">
+                No Jobs Found
+              </h2>
+
+              <p className="mt-3 text-slate-400">
+                Try searching for AI, Java, React, Cloud, Remote, etc.
+              </p>
+
             </div>
+
           )}
+
         </section>
+
       </div>
     </main>
   );
