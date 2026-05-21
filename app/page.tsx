@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -25,21 +24,19 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link
+              <a
                 href="/jobs"
-                prefetch={false}
                 className="rounded-xl bg-blue-500 px-6 py-3 font-semibold hover:bg-blue-600"
               >
                 Browse Jobs
-              </Link>
+              </a>
 
-              <Link
+              <a
                 href="/saved"
-                prefetch={false}
                 className="rounded-xl border border-slate-700 px-6 py-3 font-semibold hover:bg-slate-800"
               >
                 View Saved Jobs
-              </Link>
+              </a>
             </div>
           </section>
 
