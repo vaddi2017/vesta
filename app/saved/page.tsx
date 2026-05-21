@@ -1,0 +1,127 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+type SavedJob = {
+  id: number;
+  company_name: string;
+  job_title: string;
+  location: string;
+  apply_url: string;
+  saved_at: string;
+};
+
+export default function SavedJobsPage() {
+  const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
+
+  async function fetchSavedJobs() {
+    const { data, error } = await supabase
+      .from("saved_jobs")
+      .select("*")
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (data) {
+      setSavedJobs(data);
+    }
+  }
+
+  async function deleteSavedJob(id: number) {
+    if (!confirm("Remove this saved job?")) return;
+
+    const { error } = await supabase
+      .from("saved_jobs")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      alert("Failed to remove saved job");
+      return;
+    }
+
+    fetchSavedJobs();
+  }
+
+  useEffect(() => {
+    fetchSavedJobs();
+  }, []);
+
+  return (
+    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+      <div className="mx-auto max-w-7xl">
+        <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-8 shadow-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-400">
+            Vesta Saved Jobs
+          </p>
+
+          <h1 className="mt-4 text-5xl font-bold">Saved Jobs</h1>
+
+          <p className="mt-4 max-w-2xl text-slate-300">
+            Review the jobs you saved from the Vesta AI daily job feed.
+          </p>
+
+          <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
+            <p className="text-sm text-slate-400">Total Saved Jobs</p>
+            <h2 className="mt-2 text-4xl font-bold">{savedJobs.length}</h2>
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-5">
+          {savedJobs.map((job) => (
+            <div
+              key={job.id}
+              className="rounded-3xl border border-slate-800 bg-slate-900 p-6 transition hover:border-blue-500"
+            >
+              <p className="text-sm font-semibold text-blue-400">
+                {job.company_name}
+              </p>
+
+              <h2 className="mt-2 text-2xl font-bold">{job.job_title}</h2>
+
+              <p className="mt-3 text-slate-300">{job.location}</p>
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                <a
+                  href={job.apply_url}
+                  target="_blank"
+                  className="rounded-xl bg-blue-500 px-6 py-3 font-semibold hover:bg-blue-600"
+                >
+                  Apply Now
+                </a>
+
+                <button
+                  onClick={() => deleteSavedJob(job.id)}
+                  className="rounded-xl bg-red-500 px-6 py-3 font-semibold hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {savedJobs.length === 0 && (
+            <div className="rounded-3xl border border-slate-800 bg-slate-900 p-10 text-center">
+              <h2 className="text-3xl font-bold">No Saved Jobs</h2>
+
+              <p className="mt-3 text-slate-400">
+                Save jobs from the main jobs feed to see them here.
+              </p>
+
+              <a
+                href="/jobs"
+                className="mt-6 inline-block rounded-xl bg-blue-500 px-6 py-3 font-semibold hover:bg-blue-600"
+              >
+                Browse Jobs
+              </a>
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
