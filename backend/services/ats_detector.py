@@ -11,7 +11,7 @@ def detect_ats(url):
     if "ashby" in url:
         return "ashby"
 
-    if "workday" in url:
+    if "workday" in url or "myworkdayjobs" in url:
         return "workday"
 
     return "generic"

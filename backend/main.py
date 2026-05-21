@@ -1,12 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from scraper.google_scraper import scrape_jobs
 from scraper.lever_scraper import scrape_lever_jobs
 from scraper.greenhouse_scraper import scrape_greenhouse_jobs
+from scraper.workday_scraper import scrape_workday_jobs
+
 from services.company_service import get_companies
 from services.supabase_client import supabase
 from services.ats_detector import detect_ats
+
 from datetime import datetime, timedelta
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from zoneinfo import ZoneInfo
 
@@ -21,32 +26,47 @@ app.add_middleware(
 )
 
 def run_scraper_job():
+
     companies = get_companies()
+
     total_jobs = []
 
     for company in companies:
+
         ats_type = detect_ats(company["career_url"])
+
         company_jobs = []
 
         if ats_type == "greenhouse":
+
             company_jobs = scrape_greenhouse_jobs(
                 company["career_url"],
                 company["company_name"]
             )
 
         elif ats_type == "lever":
+
             company_jobs = scrape_lever_jobs(
                 company["career_url"],
                 company["company_name"]
             )
 
+        elif ats_type == "workday":
+
+            company_jobs = scrape_workday_jobs(
+                company["career_url"],
+                company["company_name"]
+            )
+
         else:
+
             company_jobs = scrape_jobs(
                 company["career_url"],
                 company["company_name"]
             )
 
         for job in company_jobs:
+
             existing = supabase.table("jobs") \
                 .select("*") \
                 .eq("company_name", job["company_name"]) \
@@ -70,7 +90,10 @@ def run_scraper_job():
 
     return total_jobs
 
-scheduler = BackgroundScheduler(timezone=ZoneInfo("America/Chicago"))
+
+scheduler = BackgroundScheduler(
+    timezone=ZoneInfo("America/Chicago")
+)
 
 scheduler.add_job(
     run_scraper_job,
@@ -83,15 +106,19 @@ scheduler.add_job(
 
 scheduler.start()
 
+
 @app.get("/")
 def home():
+
     return {
         "message": "Vesta AI Backend Running",
         "scheduler": "Daily scraper active at 10 AM America/Chicago"
     }
 
+
 @app.get("/scrape-jobs")
 def scrape_all_jobs():
+
     jobs = run_scraper_job()
 
     return {
