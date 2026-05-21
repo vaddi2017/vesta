@@ -1,0 +1,73 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const navItems = [
+  {
+    name: "Jobs",
+    href: "/jobs",
+  },
+  {
+    name: "Saved Jobs",
+    href: "/saved",
+  },
+  {
+    name: "Admin",
+    href: "/admin",
+  },
+];
+
+export default function Navbar() {
+  const pathname = usePathname();
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+
+        <Link
+          href="/jobs"
+          className="flex items-center gap-3"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500 text-xl font-bold">
+            V
+          </div>
+
+          <div>
+            <h1 className="text-xl font-bold text-white">
+              Vesta AI
+            </h1>
+
+            <p className="text-xs text-slate-400">
+              Daily Job Platform
+            </p>
+          </div>
+        </Link>
+
+        <nav className="flex items-center gap-3">
+
+          {navItems.map((item) => {
+
+            const active = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                  active
+                    ? "bg-blue-500 text-white"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
+
+        </nav>
+
+      </div>
+    </header>
+  );
+}
