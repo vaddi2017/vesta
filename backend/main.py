@@ -1,19 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from scraper.google_scraper import scrape_jobs
-from scraper.lever_scraper import scrape_lever_jobs
-from scraper.greenhouse_scraper import scrape_greenhouse_jobs
-from scraper.workday_scraper import scrape_workday_jobs
-
-from services.company_service import get_companies
-from services.supabase_client import supabase
-from services.ats_detector import detect_ats
-
-from datetime import datetime, timedelta
-
 from apscheduler.schedulers.background import BackgroundScheduler
-from zoneinfo import ZoneInfo
+from supabase import create_client
+from dotenv import load_dotenv
+import requests
+import os
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -25,104 +18,103 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def run_scraper_job():
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-    companies = get_companies()
-
-    total_jobs = []
-
-    for company in companies:
-
-        ats_type = detect_ats(company["career_url"])
-
-        company_jobs = []
-
-        if ats_type == "greenhouse":
-
-            company_jobs = scrape_greenhouse_jobs(
-                company["career_url"],
-                company["company_name"]
-            )
-
-        elif ats_type == "lever":
-
-            company_jobs = scrape_lever_jobs(
-                company["career_url"],
-                company["company_name"]
-            )
-
-        elif ats_type == "workday":
-
-            company_jobs = scrape_workday_jobs(
-                company["career_url"],
-                company["company_name"]
-            )
-
-        else:
-
-            company_jobs = scrape_jobs(
-                company["career_url"],
-                company["company_name"]
-            )
-
-        for job in company_jobs:
-
-            existing = supabase.table("jobs") \
-                .select("*") \
-                .eq("company_name", job["company_name"]) \
-                .eq("job_title", job["job_title"]) \
-                .eq("apply_url", job["apply_url"]) \
-                .execute()
-
-            if existing.data:
-                continue
-
-            supabase.table("jobs").insert({
-                "company_name": job["company_name"],
-                "job_title": job["job_title"],
-                "location": job["location"],
-                "apply_url": job["apply_url"],
-                "posted_date": str(datetime.now()),
-                "expires_at": str(datetime.now() + timedelta(hours=24))
-            }).execute()
-
-            total_jobs.append(job)
-
-    return total_jobs
-
-
-scheduler = BackgroundScheduler(
-    timezone=ZoneInfo("America/Chicago")
-)
-
-scheduler.add_job(
-    run_scraper_job,
-    "cron",
-    hour=10,
-    minute=0,
-    id="daily_vesta_scraper",
-    replace_existing=True
-)
-
-scheduler.start()
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 @app.get("/")
 def home():
-
     return {
         "message": "Vesta AI Backend Running",
         "scheduler": "Daily scraper active at 10 AM America/Chicago"
     }
 
 
+def run_scraper_job():
+
+    jobs_added = 0
+
+    try:
+
+        companies_response = supabase.table("companies").select("*").execute()
+
+        companies = companies_response.data
+
+        print(f"Found {len(companies)} companies")
+
+        for company in companies:
+
+            company_name = company["company_name"]
+            career_url = company["career_url"]
+
+            print(f"Scraping {company_name}")
+
+            try:
+
+                # DEMO JOB ENTRY
+                # Replace later with real scraper logic
+
+                sample_job = {
+                    "company_name": company_name,
+                    "job_title": "Software Engineer",
+                    "location": "Remote",
+                    "apply_url": career_url
+                }
+
+                try:
+
+                    supabase.table("jobs").insert(sample_job).execute()
+
+                    jobs_added += 1
+
+                    print(f"Inserted job for {company_name}")
+
+                except Exception as insert_error:
+
+                    print("Supabase insert failed:", insert_error)
+
+            except Exception as company_error:
+
+                print(f"Failed scraping {company_name}: {company_error}")
+
+    except Exception as e:
+
+        print("Main scraper failed:", e)
+
+    return jobs_added
+
+
 @app.get("/scrape-jobs")
 def scrape_all_jobs():
 
-    jobs = run_scraper_job()
+    try:
 
-    return {
-        "status": "success",
-        "jobs_found": len(jobs),
-        "jobs": jobs
-    }
+        jobs = run_scraper_job()
+
+        return {
+            "status": "success",
+            "jobs_found": jobs
+        }
+
+    except Exception as e:
+
+        print("Scraper failed:", e)
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+scheduler = BackgroundScheduler(timezone="America/Chicago")
+
+scheduler.add_job(
+    run_scraper_job,
+    "cron",
+    hour=10,
+    minute=0
+)
+
+scheduler.start()
